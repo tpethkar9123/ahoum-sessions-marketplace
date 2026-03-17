@@ -7,8 +7,11 @@ A web application where users can sign in via OAuth, browse sessions, and book t
 - **Frontend**: React / Next.js
 - **Backend**: Django + Django REST Framework
 - **Database**: PostgreSQL
-- **Infrastructure**: Docker (multi-container: frontend, backend, database, Nginx reverse proxy)
+- **Storage**: MinIO (S3-Compatible Local Storage)
+- **Payments**: Stripe (Integrated via Payment Intents)
+- **Infrastructure**: Docker (multi-container: frontend, backend, database, Nginx, MinIO)
 - **Authentication**: OAuth (Google or GitHub) with JWT tokens
+- **Security**: Rate Limiting (DRF Throttling)
 
 ## Architecture
 
@@ -18,6 +21,8 @@ graph TD
     Proxy[Nginx - Reverse Proxy]
     API[Backend API - Django/DRF]
     DB[(PostgreSQL Database)]
+    S3[MinIO - S3 Storage]
+    Stripe[Stripe - Payment Gateway]
     Auth[OAuth Provider - Google/GitHub]
 
     Client -- "HTTP Requests" --> Proxy
@@ -25,6 +30,9 @@ graph TD
     Proxy -- "/" --> Client
     API -- "OAuth Flow" --> Auth
     API -- "Reads/Writes" --> DB
+    API -- "Uploads/Serves" --> S3
+    API -- "Creates Intent" --> Stripe
+    Client -- "Confirms Payment" --> Stripe
 ```
 
 ## Database Schema / Class Diagram
@@ -49,6 +57,7 @@ classDiagram
         +DateTime date
         +Time time
         +Decimal price
+        +File image "Stored in MinIO"
         +UUID creator_id
         +DateTime created_at
     }
