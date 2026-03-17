@@ -35,11 +35,18 @@ const SessionDetail = () => {
     
     setBooking(true);
     try {
+      // 1. Create Payment Intent
+      const { data } = await api.post('/payments/create-intent/', { session_id: id });
+      
+      // 2. Simulate User confirming Payment (Client-side Stripe Logic would go here)
+      alert(`Payment Processing... Client Secret: ${data.clientSecret.substring(0, 15)}...`);
+      
+      // 3. Confirm Booking
       await api.post('/bookings/', { session: id });
       alert('Session booked successfully!');
       navigate('/user-dashboard');
     } catch (err) {
-      alert('Booking failed. Maybe you are a Creator?');
+      alert('Booking or Payment failed.');
     } finally {
       setBooking(false);
     }
@@ -50,8 +57,12 @@ const SessionDetail = () => {
 
   return (
     <div className="container animate-fade" style={{ maxWidth: '800px', margin: '4rem auto' }}>
-      <div className="glass card" style={{ padding: '3rem' }}>
-        <h1 style={{ marginBottom: '1.5rem', fontSize: '2.5rem' }}>{session.title}</h1>
+      <div className="glass card" style={{ padding: '0', overflow: 'hidden' }}>
+        {session.image && (
+          <img src={session.image} alt={session.title} style={{ width: '100%', maxHeight: '400px', objectFit: 'cover' }} />
+        )}
+        <div style={{ padding: '3rem' }}>
+          <h1 style={{ marginBottom: '1.5rem', fontSize: '2.5rem' }}>{session.title}</h1>
         
         <div style={{ display: 'flex', gap: '2rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -91,6 +102,7 @@ const SessionDetail = () => {
             <ShieldCheck size={20} />
             {booking ? 'Processing...' : 'Book Now'}
           </button>
+        </div>
         </div>
       </div>
     </div>

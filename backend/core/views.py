@@ -4,6 +4,9 @@ from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.parsers import MultiPartParser, FormParser
+from django.conf import settings
+import stripe
 from django.contrib.auth import get_user_model
 from rest_framework_simplejwt.tokens import RefreshToken
 from .models import Session, Booking
@@ -21,6 +24,7 @@ class SessionViewSet(viewsets.ModelViewSet):
     queryset = Session.objects.all().order_by('-created_at')
     serializer_class = SessionSerializer
     permission_classes = [IsCreator]
+    parser_classes = [MultiPartParser, FormParser]
         
     def perform_create(self, serializer):
         serializer.save(creator=self.request.user)
@@ -101,3 +105,24 @@ class OAuthLoginView(APIView):
             'access': str(refresh.access_token),
             'user': UserSerializer(user).data
         })
+
+class CreatePaymentIntentView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        stripe.api_key = settings.STRIPE_SECRET_KEY
+        try:
+            # For demo, we just use a fixed amount or get from session
+            session_id = request.data.get('session_id')
+            session_obj = Session.objects.get(id=session_id)
+            
+            intent = stripe.PaymentIntent.create(
+                amount=int(session_obj.price * 100), # Amount in cents
+                currency='usd',
+                metadata={'session_id': session_id, 'user_id': request.user.id}
+            )
+            return Response({
+                'clientSecret': intent['client_secret']
+            })
+        except Exception as e:
+            return Response({'error': str(e)}, status=400)

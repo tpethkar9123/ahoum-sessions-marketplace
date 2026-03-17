@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import SessionViewSet, BookingViewSet, UserProfileView, OAuthLoginView
+from .views import SessionViewSet, BookingViewSet, UserProfileView, OAuthLoginView, CreatePaymentIntentView
 
 router = DefaultRouter()
 router.register(r'sessions', SessionViewSet)
@@ -10,4 +10,5 @@ urlpatterns = [
     path('', include(router.urls)),
     path('profile/', UserProfileView.as_view(), name='profile'),
     path('auth/oauth/', OAuthLoginView.as_view(), name='oauth_login'),
+    path('payments/create-intent/', CreatePaymentIntentView.as_view(), name='create-payment-intent'),
 ]

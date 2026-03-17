@@ -21,6 +21,7 @@ class Session(models.Model):
     time = models.TimeField()
     price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sessions')
+    image = models.ImageField(upload_to='sessions/', blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
 class Booking(models.Model):

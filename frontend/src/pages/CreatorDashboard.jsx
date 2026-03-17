@@ -40,10 +40,17 @@ const CreatorDashboard = () => {
 
   const handleCreateSession = async (e) => {
     e.preventDefault();
+    const formDataObj = new FormData();
+    Object.keys(formData).forEach(key => {
+      if (formData[key]) formDataObj.append(key, formData[key]);
+    });
+
     try {
-      await api.post('/sessions/', formData);
+      await api.post('/sessions/', formDataObj, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
       setShowForm(false);
-      setFormData({ title: '', description: '', date: '', time: '', price: '' });
+      setFormData({ title: '', description: '', date: '', time: '', price: '', image: null });
       fetchData();
     } catch (err) {
       alert('Failed to create session.');
@@ -100,6 +107,13 @@ const CreatorDashboard = () => {
               <input 
                 type="number" required className="glass" style={{ width: '100%', padding: '0.8rem', color: 'white' }}
                 value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})}
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.9rem' }}>Cover Image</label>
+              <input 
+                type="file" className="glass" style={{ width: '100%', padding: '0.6rem', color: 'white' }}
+                onChange={e => setFormData({...formData, image: e.target.files[0]})}
               />
             </div>
             <div style={{ display: 'flex', alignItems: 'flex-end' }}>
