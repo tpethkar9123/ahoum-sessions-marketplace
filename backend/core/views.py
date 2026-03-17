@@ -112,10 +112,15 @@ class CreatePaymentIntentView(APIView):
     def post(self, request):
         stripe.api_key = settings.STRIPE_SECRET_KEY
         try:
-            # For demo, we just use a fixed amount or get from session
             session_id = request.data.get('session_id')
             session_obj = Session.objects.get(id=session_id)
             
+            # Handle mock stripe key for testing
+            if stripe.api_key == 'sk_test_mock':
+                return Response({
+                    'clientSecret': f'mock_secret_for_session_{session_id}'
+                })
+
             intent = stripe.PaymentIntent.create(
                 amount=int(session_obj.price * 100), # Amount in cents
                 currency='usd',

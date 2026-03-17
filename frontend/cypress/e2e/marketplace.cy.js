@@ -35,6 +35,7 @@ describe('SpiritualTech Marketplace E2E Tests', () => {
     cy.get('input[type="date"]').type('2026-12-31');
     cy.get('input[type="time"]').type('10:00');
     cy.get('input[type="number"]').type('99');
+    // Image is optional, so we skip it for simplicity in E2E
     
     cy.contains('Publish Session').click();
     cy.wait('@createSessionReq').its('response.statusCode').should('eq', 201);
@@ -43,6 +44,7 @@ describe('SpiritualTech Marketplace E2E Tests', () => {
 
   it('should allow dev login as user and book a session', () => {
     cy.intercept('POST', '**/auth/oauth/').as('loginReqUser');
+    cy.intercept('POST', '**/payments/create-intent/').as('paymentReq');
     cy.intercept('POST', '**/bookings/').as('bookReq');
     
     cy.visit('/login');
@@ -58,8 +60,10 @@ describe('SpiritualTech Marketplace E2E Tests', () => {
     cy.contains('View Details', { timeout: 10000 }).first().click();
     cy.url().should('include', '/sessions/');
     
-    // Book it
+    // Book it (this triggers payment intent + alert + booking)
     cy.contains('Book Now').click();
+    
+    cy.wait('@paymentReq').its('response.statusCode').should('eq', 200);
     cy.wait('@bookReq').its('response.statusCode').should('eq', 201);
     
     // Should be on user dashboard
