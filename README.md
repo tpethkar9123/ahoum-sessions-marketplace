@@ -10,6 +10,62 @@ A web application where users can sign in via OAuth, browse sessions, and book t
 - **Infrastructure**: Docker (multi-container: frontend, backend, database, Nginx reverse proxy)
 - **Authentication**: OAuth (Google or GitHub) with JWT tokens
 
+## Architecture
+
+```mermaid
+graph TD
+    Client[Frontend Client - React/Next.js]
+    Proxy[Nginx - Reverse Proxy]
+    API[Backend API - Django/DRF]
+    DB[(PostgreSQL Database)]
+    Auth[OAuth Provider - Google/GitHub]
+
+    Client -- "HTTP Requests" --> Proxy
+    Proxy -- "/api/*" --> API
+    Proxy -- "/" --> Client
+    API -- "OAuth Flow" --> Auth
+    API -- "Reads/Writes" --> DB
+```
+
+## Database Schema / Class Diagram
+
+```mermaid
+classDiagram
+    class User {
+        +UUID id
+        +String email
+        +String name
+        +String avatar_url
+        +String role "User | Creator"
+        +String oauth_provider
+        +String oauth_id
+        +DateTime created_at
+    }
+
+    class Session {
+        +UUID id
+        +String title
+        +String description
+        +DateTime date
+        +Time time
+        +Decimal price
+        +UUID creator_id
+        +DateTime created_at
+    }
+
+    class Booking {
+        +UUID id
+        +UUID user_id
+        +UUID session_id
+        +String status "Confirmed | Cancelled"
+        +DateTime booked_at
+    }
+
+    User "1" -- "*" Session : creates
+    User "1" -- "*" Booking : makes
+    Session "1" -- "*" Booking : has
+```
+
 ## Setup Instructions
 
 ### 1. Cloning the Repository
