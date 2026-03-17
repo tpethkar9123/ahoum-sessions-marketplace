@@ -66,6 +66,41 @@ classDiagram
     Session "1" -- "*" Booking : has
 ```
 
+## System Requirements & Prerequisites
+Before installing on any system, ensure you have the following tools installed:
+- **Docker**: [Install Docker](https://docs.docker.com/get-docker/)
+- **Docker Compose**: (Included in Docker Desktop for Windows/Mac)
+- **Git**: [Install Git](https://git-scm.com/downloads)
+
+*(Optional for advanced automation)*:
+- **Terraform** & **Ansible** (if you wish to use the automated seeding flow).
+
+---
+
+## 🛠️ Installation Guide (Any System)
+
+### 🪟 Windows
+1. **Docker Desktop**: Install [Docker Desktop for Windows](https://docs.docker.com/desktop/install/windows-install/).
+2. **Terminal**: Use PowerShell, Command Prompt, or Git Bash.
+3. **Hardware Virtualization**: Ensure WSL2 or Hyper-V is enabled in your BIOS/UEFI.
+
+### 🐧 Linux (Ubuntu/Debian)
+```bash
+# 1. Update and install Docker
+sudo apt-get update
+sudo apt-get install docker.io docker-compose-v2 -y
+
+# 2. Add user to docker group (to run without sudo)
+sudo usermod -aG docker $USER
+# (Log out and back in for changes to take effect)
+```
+
+### 🍎 macOS
+1. **Docker Desktop**: Install [Docker Desktop for Mac](https://docs.docker.com/desktop/install/mac-install/) (Intel or Apple Silicon).
+2. **Terminal**: Use the native macOS Terminal or iTerm2.
+
+---
+
 ## Setup Instructions
 
 ### 1. Cloning the Repository
