@@ -1,0 +1,65 @@
+- hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    terraform_dir: "../terraform"
+    backend_url: "http://localhost:8000/api"
+  
+  tasks:
+    - name: Initialize Terraform
+      command: terraform init
+      args:
+        chdir: "{{ terraform_dir }}"
+
+    - name: Apply Terraform to spin up Docker Compose
+      command: terraform apply -auto-approve
+      args:
+        chdir: "{{ terraform_dir }}"
+
+    - name: Wait for Backend API to be fully ready
+      uri:
+        url: "{{ backend_url }}/sessions/"
+        method: GET
+      register: _result
+      until: _result.status == 200
+      retries: 20
+      delay: 5
+
+    - name: Create a Creator User via mock OAuth
+      uri:
+        url: "{{ backend_url }}/auth/oauth/"
+        method: POST
+        body_format: json
+        body:
+          provider: "dev"
+          token: "dummy"
+          role: "CREATOR"
+          email: "ansible-creator@demo.local"
+          name: "Ansible Configurator"
+      register: oauth_response
+
+    - name: Extract JWT Token
+      set_fact:
+        auth_token: "{{ oauth_response.json.access }}"
+
+    - name: Create a Sample Session
+      uri:
+        url: "{{ backend_url }}/sessions/"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ auth_token }}"
+        body_format: json
+        body:
+          title: "Ansible Automated Masterclass"
+          description: "This session was automatically created by Ansible interacting with the API spun up by Terraform!"
+          date: "2026-06-01"
+          time: "10:00"
+          price: "100.00"
+      register: session_response
+      
+    - name: Assert Session Creation Success
+      assert:
+        that:
+          - session_response.status == 201
+        success_msg: "Successfully brought up Docker Compose via Terraform and populated database via Ansible!"
+        fail_msg: "Failed to create session"

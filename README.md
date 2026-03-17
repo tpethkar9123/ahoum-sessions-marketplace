@@ -100,7 +100,50 @@ To allow users to log in with OAuth (Google or GitHub):
 3. Set the authorized redirect URI to match your backend or frontend callback handler (e.g., `http://localhost/api/auth/callback/`).
 4. Copy the generated `Client ID` and `Client Secret` into the `.env` file.
 
+## Automated Local Deployment (Ansible + Terraform + Docker Compose)
+To provide a smooth, single-click initialization of the environment, this project is equipped with the trifecta of automation tools: **Ansible, Terraform, and Docker Compose**. 
+
+Here is how the infrastructure works in harmony:
+1. **Ansible Playbook** acts as the high-level orchestrator.
+2. Ansible triggers **Terraform** (`terraform apply`), which uses the `local-exec` provisioner.
+3. Terraform safely executes **Docker Compose** (`docker-compose up -d --build`).
+4. Once the containers are successfully alive, **Ansible** loops back, verifying health checks and making API calls to automatically populate the database with a functional mockup creator and a test session to save you manual entry time!
+
+**To automatically boot and seed the environment, run:**
+```bash
+cd ansible
+ansible-playbook playbook.yml
+```
+
+---
+
+## Testing
+
+### 1. End-to-End (E2E) Tests - Cypress
+We use **Cypress** to verify the entire user journey (Login -> Create Session -> Book Session).
+```bash
+cd frontend
+npx cypress run
+```
+*Tests cover: Home page rendering, Navigation, Creator flow (session creation), and User flow (booking).*
+
+### 2. Backend Unit Tests - Pytest
+We use **Pytest** for testing Django models and API logic.
+```bash
+docker-compose exec backend pytest
+```
+
+---
+
+## Deployment Workflow Summary
+- **Frontend**: React (Vite) served via **Nginx** (configured for SPA routing).
+- **Backend**: Django REST Framework served via **Gunicorn**.
+- **Proxy**: Main **Nginx** container acting as a reverse proxy for both Frontend and API.
+- **Orchestration**: Managed by **Docker Compose**, provisioned via **Terraform**.
+
+---
+
 ## Example Demo Flow
-1. **Login**: Navigate to the Home page and click "Login with Google/GitHub". Upon successful OAuth authentication, the backend issues a JWT.
-2. **Create Session (Creator Role)**: Go to the "Creator Dashboard" and click "Create Session". Fill out the session details (title, description, date, time, price) and submit. The session will now appear in the public catalog.
-3. **Book Session (User Role)**: Log in as a User, navigate to the Home / Catalog page. Click on a session to view its details on the "Session Detail" page, then hit "Book Now". You can view this active booking in your "User Dashboard".
+1. **Login**: Navigate to the Home page and click "Get Started". Use the "Dev Login" fallback for an instant authenticated experience.
+2. **Create Session (Creator Role)**: Log in as a Creator, go to the "Creator Dashboard" and click "Create Session". Fill out the details and publish.
+3. **Book Session (User Role)**: Log in as a User, navigate to the Home page, click on a session, and hit "Book Now". View it in your User Dashboard.
