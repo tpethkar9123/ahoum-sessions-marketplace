@@ -138,17 +138,41 @@ To allow users to log in with OAuth (Google or GitHub):
 ## Automated Local Deployment (Ansible + Terraform + Docker Compose)
 To provide a smooth, single-click initialization of the environment, this project is equipped with the trifecta of automation tools: **Ansible, Terraform, and Docker Compose**. 
 
-Here is how the infrastructure works in harmony:
-1. **Ansible Playbook** acts as the high-level orchestrator.
-2. Ansible triggers **Terraform** (`terraform apply`), which uses the `local-exec` provisioner.
-3. Terraform safely executes **Docker Compose** (`docker-compose up -d --build`).
-4. Once the containers are successfully alive, **Ansible** loops back, verifying health checks and making API calls to automatically populate the database with a functional mockup creator and a test session to save you manual entry time!
+### ⚙️ DevOps Orchestration: How they work together
+
+The deployment follows a "layered" automation approach where each tool handles a specific responsibility:
+
+```mermaid
+graph LR
+    A[Ansible] -- 1. Triggers --> B[Terraform]
+    B -- 2. Orchestrates --> C[Docker Compose]
+    C -- 3. Boots --> D[Containers]
+    A -- 4. Health Checks --> D
+    A -- 5. Data Seeding --> D
+```
+
+1.  **Ansible (The Command Center)**: 
+    *   Ansible acts as the entry point. It manages the high-level lifecycle of the application.
+    *   It ensures prerequisites are met and then calls Terraform to handle the infrastructure state.
+    *   After the infrastructure is up, Ansible performs **post-deployment tasks**: it waits for the API to be healthy and then runs a "Seeding" script to inject demo users and sessions into the database.
+
+2.  **Terraform (The State Manager)**: 
+    *   Terraform is used to maintain a consistent state of the local Docker infrastructure.
+    *   It uses a `null_resource` with a `local-exec` provisioner to bridge the gap between Infrastructure-as-Code and Docker Compose.
+    *   It ensures that `docker-compose up` is executed correctly and tracks the deployment in a `terraform.tfstate` file, allowing for easy updates or clean destruction.
+
+3.  **Docker Compose (The Runtime Engine)**: 
+    *   Docker Compose handles the actual containerization logic.
+    *   It defines the network (how the API talks to the DB) and the volumes (how the database state is persisted).
+    *   It builds the optimized images for the Frontend and Backend using the provided `Dockerfiles`.
 
 **To automatically boot and seed the environment, run:**
 ```bash
 cd ansible
 ansible-playbook playbook.yml
 ```
+
+---
 
 ---
 
